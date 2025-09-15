@@ -1,4 +1,4 @@
-/*
+ /*
 Copyright (c) 2024 Limelight Vision
 
 All rights reserved.
@@ -43,6 +43,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -81,14 +82,16 @@ public class Limelight_Test extends LinearOpMode {
 
     private Limelight3A limelight;
     private static Servo s1;
+    private static CRServo cs1;
     public static DcMotorEx m1;
-    public static double kp = 0, ki = 0, kd = 0, setPoint = 0;
+    public static double kp = 0.2, ki = 0, kd = 0.01, setPoint = 0;
     public static double corr = 0, yaw = 0;
     @Override
     public void runOpMode() throws InterruptedException
     {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        s1 = hardwareMap.get(Servo.class, "s1");
+//        s1 = hardwareMap.get(Servo.class, "s1");
+        cs1 = hardwareMap.get(CRServo.class, "s1");
         m1 = hardwareMap.get(DcMotorEx.class, "m1");
         m1.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         m1.setZeroPowerBehavior(BRAKE);
@@ -104,7 +107,7 @@ public class Limelight_Test extends LinearOpMode {
 
         telemetry.addData(">", "Robot Ready.  Press Play.");
         telemetry.update();
-        s1.setPosition(0.5);
+        corr = 0;
         waitForStart();
 
         while (opModeIsActive()) {
@@ -132,11 +135,14 @@ public class Limelight_Test extends LinearOpMode {
                     yaw = fr.getTargetPoseRobotSpace().getOrientation().getYaw();
                     telemetry.addData("Fiducial", " Yaw: %.2f", fr.getTargetPoseRobotSpace().getOrientation().getYaw());
                 }
+
             }else {
+                corr = 0;
+                yaw = 0;
                 telemetry.addData("Limelight", "No data available");
             }
-
             correctTurretMotor(yaw, setPoint);
+
             telemetry.addData("corr", corr);
             telemetry.addData("s1 ", s1.getPosition());
             telemetry.update();
@@ -189,8 +195,8 @@ public class Limelight_Test extends LinearOpMode {
         }
         Range.clip(corr, -1, 1);
         prevError = err;
-        m1.setPower(corr);
 
+        cs1.setPower(corr);
 
     }
 }
