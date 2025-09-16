@@ -19,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
 @Config
-@TeleOp(name = "Sensor: Limelight3A Drive", group = "Sensor")
-public class Limelight_Drive extends LinearOpMode {
+@TeleOp(name = "Sensor: Limelight3A Drive Adjust", group = "Sensor")
+public class Limelight_Drive_Adjust extends LinearOpMode {
     public static double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
     public static double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
     public static double TURN_GAIN   =  0.025  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
@@ -57,6 +57,7 @@ public class Limelight_Drive extends LinearOpMode {
     public static double TargetYaw = 45;
     private double rangeError;
     public static double offset = 13;
+    public static double DESIRED_ANGLE = 130;
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -105,7 +106,7 @@ public class Limelight_Drive extends LinearOpMode {
 
             if(gamepad1.back){
                 drive = new MecanumDrive(hardwareMap,new Pose2d(0,0,0));
-                    drive.updatePoseEstimate();
+                drive.updatePoseEstimate();
 
             }
 
@@ -118,14 +119,8 @@ public class Limelight_Drive extends LinearOpMode {
                 // Access general information
                 targetFound = true;
                 botpose = result.getBotpose();
-                double captureLatency = result.getCaptureLatency();
-                double targetingLatency = result.getTargetingLatency();
-                double parseLatency = result.getParseLatency();
 
 
-
-
-                // Access fiducial results
                 List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
 
 
@@ -139,9 +134,8 @@ public class Limelight_Drive extends LinearOpMode {
                     x_pose = fr.getRobotPoseFieldSpace().getPosition().x;
                     y_pose = fr.getRobotPoseFieldSpace().getPosition().y;
                     z_pose = fr.getTargetPoseRobotSpace().getPosition().z;
-                        a2 = fr.getTargetYDegrees();
-//                    a2 = y_pose;
-//                    a2 = fr.getTargetPoseRobotSpace().getOrientation().getPitch();
+                    a2 = fr.getTargetYDegrees();
+
                     angle_radian = (a1+a2) * (3.14159 / 180.0);
                     dist = (h2 - h1)/ Math.tan(angle_radian);
                     tx = fr.getTargetXDegrees();
@@ -157,7 +151,32 @@ public class Limelight_Drive extends LinearOpMode {
                 telemetry.addData("Limelight", "No data available");
             }
 
-            if (gamepad1.left_bumper && targetFound) {
+            if (gamepad1.left_bumper && !targetFound){
+                telemetry.addLine("No Target Found - Rotating to find target");
+                if(Math.toDegrees( drive.localizer.getPose().heading.toDouble()) > 0){
+                    rangeError      = 0;
+                    double  headingError    = Math.toDegrees( drive.localizer.getPose().heading.toDouble()) - DESIRED_ANGLE;
+                    double  yawError        = 0;
+
+                    // Use the speed and turn "gains" to calculate how we want the robot to move.
+                    driveS  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                    turn   = Range.clip(headingError * TURN_GAIN, -1, 1) ;
+                    strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                }
+                else if(Math.toDegrees( drive.localizer.getPose().heading.toDouble()) < 0){
+                    rangeError      = 0;
+                    double  headingError    = DESIRED_ANGLE - Math.toDegrees( drive.localizer.getPose().heading.toDouble()) ;
+                    double  yawError        = 0;
+
+                    // Use the speed and turn "gains" to calculate how we want the robot to move.
+                    driveS  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                    turn   = Range.clip(headingError * TURN_GAIN, -1, 1) ;
+                    strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                }
+                moveRobot(driveS, strafe, -turn);
+
+            }
+            else if (gamepad1.left_bumper && targetFound) {
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 rangeError      = convert_m_to_inches(z_pose) - DESIRED_DISTANCE - offset;

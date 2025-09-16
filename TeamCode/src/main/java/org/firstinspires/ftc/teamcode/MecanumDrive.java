@@ -495,4 +495,27 @@ public final class MecanumDrive {
                 defaultVelConstraint, defaultAccelConstraint
         );
     }
+
+
+
+    public void driveFieldCentric(double x, double y, double rx, double botHeading) {
+
+        double rotX = (x * Math.cos(botHeading) - y * Math.sin(botHeading));
+        double rotY = (x * Math.sin(botHeading) + y * Math.cos(botHeading));
+
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+
+
+        double frontLeftPower = (rotY - rotX + rx) / denominator;
+        double backLeftPower = (rotY + rotX + rx) / denominator;
+        double frontRightPower = (rotY + rotX - rx) / denominator;
+        double backRightPower = (rotY - rotX - rx) / denominator;
+
+        leftFront.setPower(frontLeftPower);
+        leftBack.setPower(backLeftPower);
+        rightBack.setPower(backRightPower);
+        rightFront.setPower(frontRightPower);
+    }
 }
