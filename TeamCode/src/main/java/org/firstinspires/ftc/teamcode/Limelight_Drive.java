@@ -38,7 +38,7 @@ public class Limelight_Drive extends LinearOpMode {
     public static Pose3D botpose;
     public static double kp = 0.25, ki = 0, kd = 0, setPoint = 0;
     public static double corr = 0, yaw = 0, dist = 0;
-    public static double h1 = 10.3, h2 = 36.5, a1 = 36.6, a2 = 0, angle_radian=0;
+    public static double h1 = 10.5, h2 = 29.5, a1 = 67, a2 = 0, angle_radian=0;
     public static double min = 0;
     public static double max = 0;
     private int counts = 0;
@@ -55,6 +55,8 @@ public class Limelight_Drive extends LinearOpMode {
     double  turn            = 0;        // Desired turning power/speed (-1 to +1)
     private double DESIRED_DISTANCE = 50;
     public static double TargetYaw = 45;
+    private double rangeError;
+    public static double offset = 13;
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -158,8 +160,8 @@ public class Limelight_Drive extends LinearOpMode {
             if (gamepad1.left_bumper && targetFound) {
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
-                double  rangeError      = z_pose - DESIRED_DISTANCE;
-                double  headingError    = yaw - TargetYaw;
+                rangeError      = convert_m_to_inches(z_pose) - DESIRED_DISTANCE - offset;
+                double  headingError    = tx;
                 double  yawError        = tYaw;
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
@@ -176,6 +178,7 @@ public class Limelight_Drive extends LinearOpMode {
                 turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", driveS, strafe, turn);
             }
+            telemetry.addData("Range error: ", rangeError);
 
             telemetry.addData("corr", corr);
             telemetry.addData("Tx", tx);
@@ -184,6 +187,7 @@ public class Limelight_Drive extends LinearOpMode {
             telemetry.addData("x ", convert_m_to_inches(x_pose));
             telemetry.addData("y ", convert_m_to_inches(y_pose));
             telemetry.addData("z ", convert_m_to_inches(z_pose));
+            telemetry.addData("dist", dist);
             telemetry.addData("x robot", drive.localizer.getPose().position.x);
             telemetry.addData("y robot", drive.localizer.getPose().position.y);
             telemetry.addData("heading real", Math.toDegrees(drive.localizer.getPose().heading.real));
@@ -192,7 +196,7 @@ public class Limelight_Drive extends LinearOpMode {
             telemetry.addData("heading RAD to double",Math.toDegrees( drive.localizer.getPose().heading.toDouble()));
             telemetry.addData("heading RAD to double Rad",drive.localizer.getPose().heading.toDouble());
             telemetry.update();
-            moveRobot(-driveS, strafe, -turn);
+            moveRobot(driveS, strafe, -turn);
         }
         limelight.stop();
     }
