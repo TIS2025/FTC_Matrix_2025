@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.LimeUtils;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+@Config
 public class LimeGlobals {
     public static double corr = 0, yaw = 0, dist = 0;
     public static Pose3D botpose;
@@ -32,4 +35,5 @@ public class LimeGlobals {
     public static double rangeError;
     public static double offset = 13;
     public static double DESIRED_ANGLE = 130;
+    public static double headingError = 0;
 }
