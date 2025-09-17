@@ -132,7 +132,9 @@ public class Limelight_Turret_Adjust extends LinearOpMode {
                     tx = fr.getTargetXDegrees();
                     ty = fr.getTargetYDegrees();
                     tYaw = fr.getTargetPoseRobotSpace().getOrientation().getYaw();
-                    telemetry.addData("Fiducial", " Yaw: %.2f", LimeGlobals.yaw);
+
+                    DESIRED_ANGLE = yaw;
+                    telemetry.addData("Fiducial", " Yaw: %.2f", yaw);
                     telemetry.addData("Fiducial", " Pitch: %.2f", pitch);
                     telemetry.addData("Fiducial", " Roll: %.2f", roll);
                 }
@@ -166,7 +168,7 @@ public class Limelight_Turret_Adjust extends LinearOpMode {
 
             angle = getContinuousIMU(Math.toDegrees(drive.localizer.getPose().heading.toDouble()));
 
-            run_turret(angle, 0, 16384, currentPose);
+            run_turret(angle + DESIRED_ANGLE, 0, 8192, currentPose);
 
 
 
@@ -224,9 +226,7 @@ public class Limelight_Turret_Adjust extends LinearOpMode {
     public static void run_turret(double imu, double min_in_pos, double max_in_pos, double pose ){
         pid = 0;
 
-
-
-        c = map(pose, min_in_pos, max_in_pos, 720, 0);
+        c = map(pose, min_in_pos, max_in_pos, 360, 0);
 
         if (imu < 0){
             c = -c;
@@ -314,6 +314,7 @@ public class Limelight_Turret_Adjust extends LinearOpMode {
     public static void print_stuffs(Telemetry telemetry){
 
         telemetry.addData("corr", corr);
+        telemetry.addData("DESIRED ANGLE " ,DESIRED_ANGLE);
         telemetry.addData("angle", angle);
         telemetry.addData("c ", c);
         telemetry.addData("pid", pid);
