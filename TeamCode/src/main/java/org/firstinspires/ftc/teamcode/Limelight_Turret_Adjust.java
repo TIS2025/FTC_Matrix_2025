@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.LimeUtils.LimeGlobals.*;
+import org.firstinspires.ftc.teamcode.LimeUtils.LimeGlobals;
+import org.firstinspires.ftc.teamcode.LimeUtils.LimeGlobals.*;
 
 import static java.lang.Math.abs;
 
@@ -22,7 +24,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.LimeUtils.LimeGlobals;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.opencv.dnn.Image2BlobParams;
 
 import java.util.List;
@@ -48,6 +50,8 @@ public class Limelight_Turret_Adjust extends LinearOpMode {
     public static double prevAngle = 0;
     public static double totalAngle = 0;
     private static double angle;
+    private boolean targetFound;
+    private Pose3D botpose;
 
     @Override
     public void runOpMode() throws InterruptedException
